@@ -56,9 +56,10 @@ function generate_certificate()
 		print_msg "KO" "certificate" "Could not generate SSL certificate"
 		exit 1
 	fi
-	for path in "$@"; do
-		cp openssl.key openssl.cert srcs/${path}/srcs/
+	for copy in "$@"; do
+		cp openssl.key openssl.crt srcs/${copy}/srcs/ 2>/dev/null
 	done
+	rm -f openssl.key openssl.crt
 }
 
 # ----------------------------------------- #
