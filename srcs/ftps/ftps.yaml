@@ -15,6 +15,50 @@ spec:
     port: 21
     protocol: TCP
     targetPort: 21
+  - name: ftps-pasv-35000
+    port: 35000
+    protocol: TCP
+    targetPort: 35000
+  - name: ftps-pasv-35001
+    port: 35001
+    protocol: TCP
+    targetPort: 35001
+  - name: ftps-pasv-35002
+    port: 35002
+    protocol: TCP
+    targetPort: 35002
+  - name: ftps-pasv-35003
+    port: 35003
+    protocol: TCP
+    targetPort: 35003
+  - name: ftps-pasv-35004
+    port: 35004
+    protocol: TCP
+    targetPort: 35004
+  - name: ftps-pasv-35005
+    port: 35005
+    protocol: TCP
+    targetPort: 35005
+  - name: ftps-pasv-35006
+    port: 35006
+    protocol: TCP
+    targetPort: 35006
+  - name: ftps-pasv-35007
+    port: 35007
+    protocol: TCP
+    targetPort: 35007
+  - name: ftps-pasv-35008
+    port: 35008
+    protocol: TCP
+    targetPort: 35008
+  - name: ftps-pasv-35009
+    port: 35009
+    protocol: TCP
+    targetPort: 35009
+  - name: ftps-pasv-35010
+    port: 35010
+    protocol: TCP
+    targetPort: 35010
   selector:
     app: ftps-deployment
   type: LoadBalancer
@@ -43,8 +87,17 @@ spec:
         name: ftps-image
         ports:
         - containerPort: 20
-          protocol: TCP
         - containerPort: 21
-          protocol: TCP
+        - containerPort: 35000
+        - containerPort: 35001
+        - containerPort: 35002
+        - containerPort: 35003
+        - containerPort: 35004
+        - containerPort: 35005
+        - containerPort: 35006
+        - containerPort: 35007
+        - containerPort: 35008
+        - containerPort: 35009
+        - containerPort: 35010
       restartPolicy: Always
       schedulerName: default-scheduler
