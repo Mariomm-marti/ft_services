@@ -62,14 +62,44 @@ function generate_certificate()
 	rm -f openssl.key openssl.crt
 }
 
+# Build every image
+#  build_image <...image list to build>
+function build_image()
+{
+	for img in $@; do
+		print_msg "" "images" "Building $img with Dockerfile..."
+		docker build ./$img -t $img-latest 2>/dev/null >&1
+		if [ $? -eq 1 ]; then
+			print_msg "KO" "images" "$img failed to build!"
+		fi
+	done
+}
+
 # ----------------------------------------- #
 # ------      Script execution       ------ #
 # ----------------------------------------- #
 
 # Dependency resolving
-check_required "brew" "kubectl" "minikube" "docker" "openssl"
+check_required "kubectl" "minikube" "docker" "openssl"
 print_msg "OK" "dependencies" "dependencies are installed"
 
 # Certificate creation and copy
 generate_certificate "ftps"
 print_msg "OK" "certificate" "certificate was created successfully"
+
+# Start minikube and modify runtime to Docker
+if [[ "$(minikube status | head -n 1)" != "minikube" ]]; then
+	print_msg "" "minikube" "starting up Minikube..."
+	minikube start 2>/dev/null >&2
+	eval $(minikube docker-env)
+	minikube addons enable metrics-server >/dev/null 2>&1
+	minikube addons enable dashboard >/dev/null 2>&1
+	minikube addons enable metallb >/dev/null 2>&1
+	kubectl apply -f srcs/metallb.yaml >/dev/null 2>&1
+else
+	print_msg "" "minikube" "minikube was already started, run minikube delete"
+fi
+print_msg "OK" "minikube" "minikube successfully started"
+
+# Build every image
+build_image "ftps"
