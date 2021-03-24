@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mysql-service
+  name: mysql-service
+spec:
+  ports:
+  - name: mysql-port
+    port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: mysql-deployment
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mysql-pvc
+    labels:
+        app: mysql-deployment
+spec:
+    resources:
+        requests:
+            storage: 1024Mi
+    accessModes:
+    - ReadWriteOnce
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql-deployment
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-deployment
+  template:
+    metadata:
+      labels:
+        app: mysql-deployment
+    spec:
+      containers:
+      - image: mysql-image
+        imagePullPolicy: Never
+        name: mysql-image
+        volumeMounts:
+        - name: mysql-volume
+          mountPath: /var/lib/mysql
+        ports:
+        - containerPort: 3306
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      volumes:
+      - name: mysql-volume
+        persistentVolumeClaim:
+            claimName: mysql-pvc

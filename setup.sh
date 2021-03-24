@@ -68,10 +68,8 @@ function build_image()
 {
 	for img in $@; do
 		print_msg "" "images" "Building $img with Dockerfile..."
-		docker build ./$img -t $img-latest 2>/dev/null >&1
-		if [ $? -eq 1 ]; then
-			print_msg "KO" "images" "$img failed to build!"
-		fi
+		docker build srcs/$img -t $img-image >/dev/null 2>&1 < /dev/null
+		kubectl apply -f srcs/$img/$img.yaml
 	done
 }
 
@@ -87,19 +85,13 @@ print_msg "OK" "dependencies" "dependencies are installed"
 generate_certificate "ftps"
 print_msg "OK" "certificate" "certificate was created successfully"
 
-# Start minikube and modify runtime to Docker
-if [[ "$(minikube status | head -n 1)" != "minikube" ]]; then
-	print_msg "" "minikube" "starting up Minikube..."
-	minikube start 2>/dev/null >&2
-	eval $(minikube docker-env)
-	minikube addons enable metrics-server >/dev/null 2>&1
-	minikube addons enable dashboard >/dev/null 2>&1
-	minikube addons enable metallb >/dev/null 2>&1
-	kubectl apply -f srcs/metallb.yaml >/dev/null 2>&1
-else
-	print_msg "" "minikube" "minikube was already started, run minikube delete"
-fi
-print_msg "OK" "minikube" "minikube successfully started"
+# Start everything
+minikube start --driver=virtualbox
+eval $(minikube docker-env)
+minikube addons enable metrics-server
+minikube addons enable dashboard
+minikube addons enable metallb
+kubectl apply -f srcs/metallb.yaml
 
 # Build every image
-build_image "ftps"
+build_image "ftps" "
