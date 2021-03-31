@@ -82,9 +82,9 @@ check_required "kubectl" "minikube" "docker" "openssl"
 print_msg "OK" "dependencies" "dependencies are installed"
 
 # Certificate creation and copy
-generate_certificate "ftps"
+generate_certificate "ftps" "phpmyadmin"
 print_msg "OK" "certificate" "certificate was created successfully"
-
+exit
 # Start everything
 minikube start --driver=virtualbox
 eval $(minikube docker-env)
@@ -94,4 +94,4 @@ minikube addons enable metallb
 kubectl apply -f srcs/metallb.yaml
 
 # Build every image
-build_image "ftps" "
+build_image "ftps" "mysql"

@@ -16,16 +16,34 @@ spec:
 ---
 
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 32Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/var/lib/mysql"
+
+---
+
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: mysql-pvc
-    labels:
-        app: mysql-deployment
+  name: mysql-pvc
+  labels:
+    app: mysql-deployment
 spec:
-    resources:
-        requests:
-            storage: 1024Mi
-    accessModes:
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 32Mi
+  accessModes:
     - ReadWriteOnce
 
 ---
@@ -56,7 +74,6 @@ spec:
         ports:
         - containerPort: 3306
       restartPolicy: Always
-      schedulerName: default-scheduler
       volumes:
       - name: mysql-volume
         persistentVolumeClaim:
