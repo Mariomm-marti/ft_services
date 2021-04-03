@@ -3,9 +3,11 @@ kind: Service
 metadata:
   labels:
     app: ftps-service
+  annotations:
+    metallb.universe.tf/allow-shared-ip: shared
   name: ftps-service
 spec:
-  externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
   ports:
   - name: ftps-control
     port: 20

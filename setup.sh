@@ -82,9 +82,9 @@ check_required "kubectl" "minikube" "docker" "openssl"
 print_msg "OK" "dependencies" "dependencies are installed"
 
 # Certificate creation and copy
-generate_certificate "ftps" "phpmyadmin"
+generate_certificate "ftps"
 print_msg "OK" "certificate" "certificate was created successfully"
-exit
+
 # Start everything
 minikube start --driver=virtualbox
 eval $(minikube docker-env)
@@ -94,4 +94,9 @@ minikube addons enable metallb
 kubectl apply -f srcs/metallb.yaml
 
 # Build every image
-build_image "ftps" "mysql"
+build_image "ftps" "mysql" "influxdb" "phpmyadmin" "wordpress"
+kubectl exec deploy/mysql-deployment -- ash -c \
+	"echo \"CREATE USER 'root'@'%' IDENTIFIED BY 'root'; \
+	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%'; \
+	FLUSH PRIVILEGES; CREATE DATABASE IF NOT EXISTS wordpress;\" | mysql"
+kubectl exec deploy/mysql-deployment -- ash -c "mysql -u root --password=root wordpress < wordpress.sql"
