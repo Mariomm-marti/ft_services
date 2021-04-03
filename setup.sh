@@ -82,7 +82,7 @@ check_required "kubectl" "minikube" "docker" "openssl"
 print_msg "OK" "dependencies" "dependencies are installed"
 
 # Certificate creation and copy
-generate_certificate "ftps"
+generate_certificate "ftps" "nginx"
 print_msg "OK" "certificate" "certificate was created successfully"
 
 # Start everything
