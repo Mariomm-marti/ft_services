@@ -6,7 +6,7 @@
 #    By: mmartin- <mmartin-@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/03/23 16:36:12 by mmartin-          #+#    #+#              #
-#    Updated: 2021/04/02 21:35:30 by mmartin-         ###   ########.fr        #
+#    Updated: 2021/04/04 19:44:54 by mmartin-         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ COPY srcs/my.cnf /etc/my.cnf
 
 RUN apk update && apk upgrade && apk add mysql mysql-client
 RUN mkdir /run/mysqld && chown -R mysql:mysql /run/mysqld && \
-	echo "mysql:mysqlpswd" | chpasswd && \
+	echo "mysql:mysql" | chpasswd && \
 	mysql_install_db --user=mysql --ldata=/var/lib/mysql
 
 COPY srcs/wordpress.sql /wordpress.sql

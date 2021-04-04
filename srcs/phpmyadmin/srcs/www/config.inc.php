@@ -14,7 +14,8 @@ declare(strict_types=1);
  * cookie. Needs to be 32 chars long.
  */
 $cfg['blowfish_secret'] = 'GWtyPKKJc894MQfFKJGIUHNieg9223gH8032982nfn22UBGbu2gi2i4giu2'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
-$cfg['TempDir']         = '/var/www/tmp/';
+$cfg['TempDir']         = '/tmp/';
+$cfg['PmaAbsoluteUri']  = '/';
 
 /**
  * Servers configuration

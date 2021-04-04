@@ -57,9 +57,26 @@ function generate_certificate()
 		exit 1
 	fi
 	for copy in "$@"; do
-		cp openssl.key openssl.crt srcs/${copy}/srcs/ 2>/dev/null
+		cp openssl.key openssl.crt srcs/${copy}/srcs/ 2>>errors.log
 	done
 	rm -f openssl.key openssl.crt
+}
+
+# Generate database changes that are required in
+# order for some stuff to work
+#  init_databases <IP of this session>
+function init_databases()
+{
+	kubectl exec deploy/mysql-deployment -- ash -c \
+		"echo \"CREATE USER 'root'@'%' IDENTIFIED BY 'root'; \
+		GRANT ALL PRIVILEGES ON *.* TO 'root'@'%'; \
+		FLUSH PRIVILEGES; CREATE DATABASE IF NOT EXISTS wordpress;\" | mysql"
+	kubectl exec deploy/mysql-deployment -- ash -c \
+		"mysql -u root --password=root wordpress < wordpress.sql"
+	kubectl exec deploy/mysql-deployment -- ash -c \
+		"echo \"UPDATE wp_options SET option_value='http://$1:5050' WHERE option_id=1;\" | mysql -u root --password=root wordpress"
+	kubectl exec deploy/mysql-deployment -- ash -c \
+		"echo \"UPDATE wp_options SET option_value='http://$1:5050' WHERE option_id=2;\" | mysql -u root --password=root wordpress"
 }
 
 # Build every image
@@ -68,35 +85,51 @@ function build_image()
 {
 	for img in $@; do
 		print_msg "" "images" "Building $img with Dockerfile..."
-		docker build srcs/$img -t $img-image >/dev/null 2>&1 < /dev/null
-		kubectl apply -f srcs/$img/$img.yaml
+		docker build srcs/$img -t $img-image >/dev/null 2>>errors.log < /dev/null
+		kubectl apply -f srcs/$img/$img.yaml >/dev/null 2>>errors.log < /dev/null
 	done
+	print_msg "OK" "images" "success! Generated every image with their proper services"
 }
 
 # ----------------------------------------- #
 # ------      Script execution       ------ #
 # ----------------------------------------- #
 
+rm -f errors.log
+
 # Dependency resolving
 check_required "kubectl" "minikube" "docker" "openssl"
 print_msg "OK" "dependencies" "dependencies are installed"
 
 # Certificate creation and copy
-generate_certificate "ftps" "nginx"
+generate_certificate "nginx"
 print_msg "OK" "certificate" "certificate was created successfully"
 
 # Start everything
-minikube start --driver=virtualbox
+print_msg "" "minikube" "starting minikube... It might take a while"
+minikube start --driver=virtualbox >/dev/null 2>>errors.log < /dev/null
 eval $(minikube docker-env)
-minikube addons enable metrics-server
-minikube addons enable dashboard
-minikube addons enable metallb
-kubectl apply -f srcs/metallb.yaml
+minikube addons enable metrics-server >/dev/null 2>>errors.log
+minikube addons enable dashboard >/dev/null 2>>errors.log
+minikube addons enable metallb >/dev/null 2>>errors.log
+print_msg "OK" "minikube" "success! Now generating LoadBalancer IPs..."
+
+# Generate LoadBalancer IP
+IP_LB=$(minikube ip)
+SEG=$(echo $IP_LB | cut -d"." -f4)
+IP=$(echo $IP_LB | sed "s/$SEG/$(($SEG + 1))/g")
+print_msg "" "metallb" "generating configuration for ${IP}"
+sed -i '' '$ d' srcs/metallb.yaml
+echo "      - ${IP}-${IP}" >> srcs/metallb.yaml
+kubectl apply -f srcs/metallb.yaml >/dev/null 2>>errors.log < /dev/null
+print_msg "OK" "metallb" "nice! Everything went fine and IP is ${IP}"
 
 # Build every image
-build_image "ftps" "mysql" "influxdb" "phpmyadmin" "wordpress"
-kubectl exec deploy/mysql-deployment -- ash -c \
-	"echo \"CREATE USER 'root'@'%' IDENTIFIED BY 'root'; \
-	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%'; \
-	FLUSH PRIVILEGES; CREATE DATABASE IF NOT EXISTS wordpress;\" | mysql"
-kubectl exec deploy/mysql-deployment -- ash -c "mysql -u root --password=root wordpress < wordpress.sql"
+build_image "mysql" "phpmyadmin" "wordpress" "nginx"
+
+# Execute data init
+init_databases $IP
+
+# Launch dashboard
+print_msg "OK" "ft_services" "Everything is up and running... Here goes your dashboard"
+minikube dashboard > /dev/null 2>&1 &
