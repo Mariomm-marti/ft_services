@@ -125,7 +125,7 @@ kubectl apply -f srcs/metallb.yaml >/dev/null 2>>errors.log < /dev/null
 print_msg "OK" "metallb" "nice! Everything went fine and IP is ${IP}"
 
 # Build every image
-build_image "mysql" "phpmyadmin" "wordpress" "nginx"
+build_image "influxdb" "mysql" "phpmyadmin" "wordpress" "nginx"
 
 # Execute data init
 init_databases $IP

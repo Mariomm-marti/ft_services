@@ -15,7 +15,7 @@ declare(strict_types=1);
  */
 $cfg['blowfish_secret'] = 'GWtyPKKJc894MQfFKJGIUHNieg9223gH8032982nfn22UBGbu2gi2i4giu2'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
 $cfg['TempDir']         = '/tmp/';
-$cfg['PmaAbsoluteUri']  = '/';
+$cfg['PmaAbsoluteUri'] = "http://" . $_SERVER['SERVER_NAME'] . "/";
 
 /**
  * Servers configuration
@@ -35,6 +35,7 @@ $cfg['Servers'][$i]['compress']      = FALSE;
 $cfg['Servers'][$i]['auth_type']     = 'cookie';
 $cfg['Servers'][$i]['user']          = 'root';
 $cfg['Servers'][$i]['password']      = 'root';
+
 
 /**
  * phpMyAdmin configuration storage settings.
